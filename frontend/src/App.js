@@ -1,68 +1,61 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 import './App.css';
+
+const socket = io('http://localhost:7888');
 
 function App() {
   const [text, setText] = useState('');
-  const [receivedText, setReceivedText] = useState('');
-  const [showInput, setShowInput] = useState(true);
-  const ws = useRef(null);
+  const [publishedText, setPublishedText] = useState('');
+  const [isPublished, setIsPublished] = useState(false);
 
   useEffect(() => {
-    // Use environment variable or default to localhost:3001
-    const websocketURL = 'ws://backend:7878';
-    ws.current = new WebSocket(websocketURL);
-
-    ws.current.onopen = () => console.log('WebSocket connected');
-
-    ws.current.onmessage = event => {
-      setReceivedText(event.data);
-      setShowInput(false);
-    };
-
-    ws.current.onclose = () => console.log('WebSocket disconnected');
-
-    ws.current.onerror = error => console.error('WebSocket error:', error);
+    socket.on('new_text', (receivedText) => {
+      setPublishedText(receivedText);
+      setIsPublished(true);
+    });
 
     return () => {
-      ws.current.close();
+      socket.off('new_text');
     };
   }, []);
 
-  const publishText = () => {
-    if (text && ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(text);
+  const handlePublish = () => {
+    if (text.trim()) {
+      socket.emit('publish_text', text);
       setText('');
-      setShowInput(false); // Hide input after publishing
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(receivedText);
-    alert('Text copied to clipboard!');
-  };
-
-  const handleInputChange = (e) => {
-    setText(e.target.value);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(publishedText);
+      alert('Text copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
   };
 
   return (
     <div className="App">
-      <h1>Secure Paste</h1>
-      {showInput ? (
-        <div>
-          <textarea
-            value={text}
-            onChange={handleInputChange}
-            placeholder="Enter text to share"
-          />
-          <button onClick={publishText}>Publish</button>
-        </div>
-      ) : (
-        <div>
-          <p>Received Text: {receivedText}</p>
-          <button onClick={copyToClipboard}>Copy</button>
-        </div>
-      )}
+      <div className="container">
+        <h1>Secure Paste</h1>
+        {!isPublished ? (
+          <div className="input-container">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter text to share..."
+            />
+            <button onClick={handlePublish}>Publish</button>
+          </div>
+        ) : (
+          <div className="published-container">
+            <p className="published-text">{publishedText}</p>
+            <button onClick={handleCopy}>Copy</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

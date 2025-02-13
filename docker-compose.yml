@@ -1,13 +1,24 @@
-# docker-compose.yml
 services:
   backend:
-    build: ./
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "7878:7878"
+      - "7888:7888"
+    networks:
+      - secure-paste-network
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "6781:80"
     depends_on:
       - backend
+    networks:
+      - secure-paste-network
+
+networks:
+  secure-paste-network:
+    driver: bridge
