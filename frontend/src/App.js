@@ -8,9 +8,9 @@ function App() {
   const [publishedText, setPublishedText] = useState('');
   const [isPublished, setIsPublished] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    // Connect to the WebSocket server
     const newSocket = io('/', {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
@@ -45,6 +45,14 @@ function App() {
     };
   }, []);
 
+  // Show notification helper
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
   const handlePublish = () => {
     if (text.trim() && socket) {
       console.log('Publishing text');
@@ -56,9 +64,10 @@ function App() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(publishedText);
-      alert('Text copied to clipboard!');
+      showNotification('Text copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy text: ', err);
+      showNotification('Failed to copy text to clipboard', 'error');
     }
   };
 
@@ -71,9 +80,18 @@ function App() {
     <div className="App">
       <div className="container">
         <h1>Secure Paste</h1>
+        
+        {/* Notification */}
+        {notification && (
+          <div className={`notification ${notification.type}`}>
+            {notification.message}
+          </div>
+        )}
+
         <div className="status-indicator">
           Status: {connectionStatus}
         </div>
+        
         {!isPublished ? (
           <div className="input-container">
             <textarea
