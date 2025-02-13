@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
-// Get the WebSocket URL from environment or default to backend service name
-const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL || 'http://backend:7888';
-
 function App() {
   const [socket, setSocket] = useState(null);
   const [text, setText] = useState('');
@@ -13,7 +10,8 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
   useEffect(() => {
-    const newSocket = io(WEBSOCKET_URL, {
+    // Connect to the WebSocket server
+    const newSocket = io('/', {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     build:
@@ -7,11 +9,6 @@ services:
       - "7888:7888"
     networks:
       - secure-paste-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7888/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   frontend:
     build:
@@ -20,12 +17,11 @@ services:
     ports:
       - "6781:80"
     environment:
-      - REACT_APP_WEBSOCKET_URL=http://${HOST_IP:-localhost}:7888
-    depends_on:
-      backend:
-        condition: service_healthy
+      - REACT_APP_WEBSOCKET_URL=http://localhost:7888
     networks:
       - secure-paste-network
+    depends_on:
+      - backend
 
 networks:
   secure-paste-network:
