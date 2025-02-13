@@ -1,0 +1,23 @@
+/* secure-paste-frontend/src/App.css */
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+textarea {
+  width: 80%;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #3e8e41;
+}
