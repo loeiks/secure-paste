@@ -4,8 +4,6 @@ services:
     build: ./
     ports:
       - "7878:7878"
-    networks:
-      - app-network
 
   frontend:
     build: ./frontend
@@ -13,9 +11,3 @@ services:
       - "6781:80"
     depends_on:
       - backend
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
