@@ -9,7 +9,7 @@ function App() {
 
   useEffect(() => {
     // Use environment variable or default to localhost:3001
-    const websocketURL = process.env.REACT_APP_WEBSOCKET_URL || 'ws://backend:7878';
+    const websocketURL = 'ws://backend:7878';
     ws.current = new WebSocket(websocketURL);
 
     ws.current.onopen = () => console.log('WebSocket connected');
