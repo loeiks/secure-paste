@@ -3,18 +3,18 @@ services:
   backend:
     build: ./
     ports:
-      - "3001:3001"
+      - "7878:7878"
     networks:
       - app-network
 
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "6781:80"
     depends_on:
       - backend
     environment:
-      - REACT_APP_WEBSOCKET_URL=ws://backend:3001
+      - REACT_APP_WEBSOCKET_URL=ws://backend:7878
     networks:
       - app-network
 
