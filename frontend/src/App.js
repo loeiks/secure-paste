@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -9,6 +9,7 @@ function App() {
   const [isPublished, setIsPublished] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [notification, setNotification] = useState(null);
+  const textAreaRef = useRef(null);
 
   useEffect(() => {
     const newSocket = io('/', {
@@ -45,7 +46,6 @@ function App() {
     };
   }, []);
 
-  // Show notification helper
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => {
@@ -63,11 +63,43 @@ function App() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(publishedText);
+      // Create a temporary textarea element
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = publishedText;
+      
+      // Make it invisible but keep it in the viewport
+      tempTextArea.style.position = 'fixed';
+      tempTextArea.style.left = '0';
+      tempTextArea.style.top = '0';
+      tempTextArea.style.opacity = '0';
+      
+      document.body.appendChild(tempTextArea);
+      
+      // Handle iOS devices
+      if (navigator.userAgent.match(/ipad|iphone/i)) {
+        const range = document.createRange();
+        range.selectNodeContents(tempTextArea);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        tempTextArea.setSelectionRange(0, 999999);
+      } else {
+        tempTextArea.select();
+      }
+      
+      // Execute copy command
+      document.execCommand('copy');
+      
+      // Cleanup
+      document.body.removeChild(tempTextArea);
+      
       showNotification('Text copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      showNotification('Failed to copy text to clipboard', 'error');
+      
+      // Fallback: Show the text in a modal or alert
+      showNotification('Press and hold to copy the text manually', 'info');
+      alert(publishedText);
     }
   };
 
@@ -81,7 +113,6 @@ function App() {
       <div className="container">
         <h1>Secure Paste</h1>
         
-        {/* Notification */}
         {notification && (
           <div className={`notification ${notification.type}`}>
             {notification.message}
@@ -108,11 +139,23 @@ function App() {
           </div>
         ) : (
           <div className="published-container">
-            <p className="published-text">{publishedText}</p>
+            <div 
+              className="published-text"
+              ref={textAreaRef}
+            >
+              {publishedText}
+            </div>
             <div className="button-group">
               <button onClick={handleCopy}>Copy</button>
               <button onClick={handleReset}>Reset</button>
             </div>
+            {/* Invisible but selectable text for mobile devices */}
+            <textarea
+              readOnly
+              value={publishedText}
+              className="mobile-copy-textarea"
+              onClick={(e) => e.target.select()}
+            />
           </div>
         )}
       </div>

@@ -95,8 +95,56 @@ button:disabled {
     transform: translateX(-50%) translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
   }
+}
+
+/* Add this to your existing CSS */
+.mobile-copy-textarea {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  opacity: 0;
+  border: none;
+}
+
+.published-text {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  word-break: break-all;
+  user-select: text;
+  /* Make text selectable */
+  -webkit-user-select: text;
+  /* For Safari */
+  cursor: text;
+}
+
+/* Make the notification more visible on mobile */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+  z-index: 1000;
+  width: 80%;
+  max-width: 300px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.notification.info {
+  background-color: #17a2b8;
 }
