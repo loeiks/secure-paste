@@ -1,7 +1,7 @@
 // secure-paste-backend/index.js
 const WebSocket = require('ws');
 
-const PORT = process.env.PORT || 3001; // Use environment variable or default to 3001
+const PORT = process.env.PORT || 7878; // Use environment variable or default to 3001
 const wss = new WebSocket.Server({ port: PORT });
 
 wss.on('connection', ws => {
