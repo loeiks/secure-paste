@@ -1,7 +1,7 @@
 # docker-compose.yml
 services:
   backend:
-    build: ./secure-paste
+    build: ./
     ports:
       - "3001:3001"
     networks:
