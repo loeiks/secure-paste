@@ -7,6 +7,11 @@ services:
       - "7888:7888"
     networks:
       - secure-paste-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7888/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build:
@@ -14,8 +19,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "6781:80"
+    environment:
+      - REACT_APP_WEBSOCKET_URL=http://${HOST_IP:-localhost}:7888
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - secure-paste-network
 
