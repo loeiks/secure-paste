@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -9,7 +9,8 @@ function App() {
   const [isPublished, setIsPublished] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [notification, setNotification] = useState(null);
-  const textAreaRef = useRef(null);
+  const [showInput, setShowInput] = useState(false);
+  const [showPublished, setShowPublished] = useState(false);
 
   useEffect(() => {
     const newSocket = io('/', {
@@ -37,6 +38,7 @@ function App() {
       console.log('Received new text');
       setPublishedText(receivedText);
       setIsPublished(true);
+      setShowPublished(false); // Hide text by default when receiving new content
     });
 
     setSocket(newSocket);
@@ -58,16 +60,15 @@ function App() {
       console.log('Publishing text');
       socket.emit('publish_text', text);
       setText('');
+      setShowInput(false);
     }
   };
 
   const handleCopy = async () => {
     try {
-      // Create a temporary textarea element
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = publishedText;
       
-      // Make it invisible but keep it in the viewport
       tempTextArea.style.position = 'fixed';
       tempTextArea.style.left = '0';
       tempTextArea.style.top = '0';
@@ -75,7 +76,6 @@ function App() {
       
       document.body.appendChild(tempTextArea);
       
-      // Handle iOS devices
       if (navigator.userAgent.match(/ipad|iphone/i)) {
         const range = document.createRange();
         range.selectNodeContents(tempTextArea);
@@ -87,17 +87,12 @@ function App() {
         tempTextArea.select();
       }
       
-      // Execute copy command
       document.execCommand('copy');
-      
-      // Cleanup
       document.body.removeChild(tempTextArea);
       
       showNotification('Text copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      
-      // Fallback: Show the text in a modal or alert
       showNotification('Press and hold to copy the text manually', 'info');
       alert(publishedText);
     }
@@ -106,6 +101,11 @@ function App() {
   const handleReset = () => {
     setIsPublished(false);
     setPublishedText('');
+    setShowPublished(false);
+  };
+
+  const censorText = (text) => {
+    return '•'.repeat(text.length);
   };
 
   return (
@@ -125,11 +125,24 @@ function App() {
         
         {!isPublished ? (
           <div className="input-container">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Enter text to share..."
-            />
+            <div className="textarea-container">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Enter text to share..."
+                type={showInput ? "text" : "password"}
+              />
+              <button 
+                className="toggle-button"
+                onClick={() => setShowInput(!showInput)}
+                title={showInput ? "Hide text" : "Show text"}
+              >
+                {showInput ? "👁️" : "👁️‍🗨️"}
+              </button>
+            </div>
+            <div className="text-preview">
+              {text && (showInput ? text : censorText(text))}
+            </div>
             <button 
               onClick={handlePublish}
               disabled={connectionStatus !== 'connected'}
@@ -139,23 +152,22 @@ function App() {
           </div>
         ) : (
           <div className="published-container">
-            <div 
-              className="published-text"
-              ref={textAreaRef}
-            >
-              {publishedText}
+            <div className="published-text-container">
+              <div className="published-text">
+                {showPublished ? publishedText : censorText(publishedText)}
+              </div>
+              <button 
+                className="toggle-button"
+                onClick={() => setShowPublished(!showPublished)}
+                title={showPublished ? "Hide text" : "Show text"}
+              >
+                {showPublished ? "👁️" : "👁️‍🗨️"}
+              </button>
             </div>
             <div className="button-group">
               <button onClick={handleCopy}>Copy</button>
               <button onClick={handleReset}>Reset</button>
             </div>
-            {/* Invisible but selectable text for mobile devices */}
-            <textarea
-              readOnly
-              value={publishedText}
-              className="mobile-copy-textarea"
-              onClick={(e) => e.target.select()}
-            />
           </div>
         )}
       </div>
