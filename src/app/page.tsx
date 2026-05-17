@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 
 export default function Homepage() {
@@ -47,38 +47,33 @@ export default function Homepage() {
   );
 
   return (
-    <div className="flex h-[100vh] items-center justify-center p-8">
-      <Card className="w-[60%] p-6">
-        <CardHeader className="p-0">
-          <h1 className="scroll-m-20 text-2xl font-semibold tracking-tight">Secure Paste</h1>
+    <div className="flex h-svh items-center justify-center p-8">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Secure Paste</CardTitle>
+          <CardDescription>
+            This tool lets you copy paste any text content within the same network — open the page on both devices and
+            publish from one to another.
+          </CardDescription>
         </CardHeader>
-        <CardDescription>
-          <p className="text-muted-foreground text-sm">
-            This tool let you copy paste any text content within same network, just open up the page on both devices and
-            publish one from another.
-          </p>
-        </CardDescription>
-        <CardContent className="flex h-full flex-col items-center justify-center gap-4 p-0">
+        <CardContent>
           <InputGroup>
             <InputGroupTextarea
               placeholder="..."
               className="min-h-[220px] resize"
               value={inputValue}
-              onChange={(event) => {
-                setInputValue(event.currentTarget.value);
-              }}
-            ></InputGroupTextarea>
+              onChange={(event) => setInputValue(event.currentTarget.value)}
+            />
           </InputGroup>
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => {
-              if (inputValue) sendMessage(inputValue);
-            }}
-          >
+        </CardContent>
+        <CardFooter className="gap-4">
+          <Button size="lg" className="flex-1" onClick={() => inputValue && sendMessage(inputValue)}>
             Publish New Text
           </Button>
-        </CardContent>
+          <Button variant="outline" size="lg" className="flex-1" onClick={() => inputValue && sendMessage(inputValue)}>
+            Copy Current Text
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
