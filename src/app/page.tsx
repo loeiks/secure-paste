@@ -8,7 +8,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 
 export default function Homepage() {
-  const [success, setSuccess] = useState<{ status: boolean; message: string | null }>({ status: false, message: null });
+  const [status, setStatus] = useState<{ status: boolean | null; message: string | null }>({
+    status: null,
+    message: null,
+  });
+
+  const clearStatus = () => setStatus({ status: null, message: null });
 
   const ref = useRef<WebSocket>(null);
   const target = useRef(() => `ws://${window.location.host}/api/ws`);
@@ -32,10 +37,18 @@ export default function Homepage() {
       async (event) => {
         const payload = await event.data.text();
         setLatestMessage(payload);
-        setSuccess({ status: false, message: null });
+        clearStatus();
       },
       controller
     );
+
+    socket?.addEventListener("error", () => {
+      setStatus({ status: false, message: "Some error occured!" });
+    });
+
+    socket?.addEventListener("close", () => {
+      setStatus({ status: false, message: "Connection closed!" });
+    });
 
     return () => controller.abort();
   }, [socket]);
@@ -45,7 +58,7 @@ export default function Homepage() {
       if (!socket || socket.readyState !== socket.OPEN) return;
       socket.send(message);
       setLatestMessage(message);
-      setSuccess({ status: true, message: "Text sent to all clients successfully!" });
+      setStatus({ status: true, message: "Text sent to all clients successfully!" });
     },
     [socket]
   );
@@ -70,9 +83,11 @@ export default function Homepage() {
                 onChange={(event) => setLatestMessage(event.currentTarget.value)}
               />
             </InputGroup>
-            {success.status && (
-              <Alert className="transiti border-green-400 text-green-400">
-                <AlertTitle>{success.message}</AlertTitle>
+            {status.message && (
+              <Alert
+                className={status.status === true ? "border-green-400 text-green-400" : "border-red-400 text-red-400"}
+              >
+                <AlertTitle>{status.message}</AlertTitle>
               </Alert>
             )}
           </div>
@@ -94,7 +109,7 @@ export default function Homepage() {
             onClick={() => {
               if (latestMessage) {
                 navigator.clipboard.writeText(latestMessage);
-                setSuccess({ status: true, message: "Text copied successfully!" });
+                setStatus({ status: true, message: "Text copied successfully!" });
               }
             }}
           >
