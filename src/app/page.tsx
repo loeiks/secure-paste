@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 
 export default function Homepage() {
+  const [success, setSuccess] = useState<{ status: boolean; message: string | null }>({ status: false, message: null });
+
   const ref = useRef<WebSocket>(null);
   const target = useRef(() => `ws://${window.location.host}/api/ws`);
   const [, update] = useState(0);
@@ -19,7 +22,7 @@ export default function Homepage() {
   }, []);
 
   const socket = ref.current;
-  const [inputValue, setInputValue] = useState("");
+  const [latestMessage, setLatestMessage] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -28,8 +31,8 @@ export default function Homepage() {
       "message",
       async (event) => {
         const payload = await event.data.text();
-        console.log("Incoming message:", payload);
-        setInputValue(payload);
+        setLatestMessage(payload);
+        setSuccess({ status: false, message: null });
       },
       controller
     );
@@ -41,7 +44,8 @@ export default function Homepage() {
     (message: string) => {
       if (!socket || socket.readyState !== socket.OPEN) return;
       socket.send(message);
-      setInputValue(message);
+      setLatestMessage(message);
+      setSuccess({ status: true, message: "Text sent to all clients successfully!" });
     },
     [socket]
   );
@@ -57,20 +61,43 @@ export default function Homepage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <InputGroup>
-            <InputGroupTextarea
-              placeholder="..."
-              className="min-h-[220px] resize"
-              value={inputValue}
-              onChange={(event) => setInputValue(event.currentTarget.value)}
-            />
-          </InputGroup>
+          <div className="flex flex-col gap-2">
+            <InputGroup>
+              <InputGroupTextarea
+                placeholder="..."
+                className="min-h-[220px] resize"
+                value={latestMessage}
+                onChange={(event) => setLatestMessage(event.currentTarget.value)}
+              />
+            </InputGroup>
+            {success.status && (
+              <Alert className="transiti border-green-400 text-green-400">
+                <AlertTitle>{success.message}</AlertTitle>
+              </Alert>
+            )}
+          </div>
         </CardContent>
         <CardFooter className="gap-4">
-          <Button size="lg" className="flex-1" onClick={() => inputValue && sendMessage(inputValue)}>
+          <Button
+            size="lg"
+            className="flex-1"
+            onClick={() => {
+              if (latestMessage) sendMessage(latestMessage);
+            }}
+          >
             Publish New Text
           </Button>
-          <Button variant="outline" size="lg" className="flex-1" onClick={() => inputValue && sendMessage(inputValue)}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1"
+            onClick={() => {
+              if (latestMessage) {
+                navigator.clipboard.writeText(latestMessage);
+                setSuccess({ status: true, message: "Text copied successfully!" });
+              }
+            }}
+          >
             Copy Current Text
           </Button>
         </CardFooter>
