@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  secure-paste:
+    build: .
+    image: spaste:latest
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spaste.rule=Host(`spaste.cluster.s1`)"
+      - "traefik.http.services.spaste.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik_proxy"
+
+networks:
+  traefik_proxy:
+      external: true
