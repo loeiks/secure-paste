@@ -8,16 +8,37 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 
 export default function Homepage() {
+  const [latestMessage, setLatestMessage] = useState("");
   const [status, setStatus] = useState<{ status: boolean | null; message: string | null }>({
     status: null,
     message: null,
   });
 
-  const clearStatus = () => setStatus({ status: null, message: null });
-
   const ref = useRef<WebSocket>(null);
   const target = useRef(() => `ws://${window.location.host}/api/ws`);
   const [, update] = useState(0);
+  const socket = ref.current;
+
+  const clearStatus = () => setStatus({ status: null, message: null });
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(latestMessage);
+      setStatus({ status: true, message: "Text copied successfully!" });
+    } catch (err) {
+      setStatus({ status: false, message: "Failed to copy text into clipboard!" });
+      console.error(err);
+    }
+  };
+
+  const sendMessage = useCallback(
+    (message: string) => {
+      if (!socket || socket.readyState !== socket.OPEN) return;
+      socket.send(message);
+      setLatestMessage(message);
+      setStatus({ status: true, message: "Text sent to all clients successfully!" });
+    },
+    [socket]
+  );
 
   useEffect(() => {
     if (ref.current) return;
@@ -25,9 +46,6 @@ export default function Homepage() {
     Reflect.set(ref, "current", socket);
     update((p) => p + 1);
   }, []);
-
-  const socket = ref.current;
-  const [latestMessage, setLatestMessage] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -52,16 +70,6 @@ export default function Homepage() {
 
     return () => controller.abort();
   }, [socket]);
-
-  const sendMessage = useCallback(
-    (message: string) => {
-      if (!socket || socket.readyState !== socket.OPEN) return;
-      socket.send(message);
-      setLatestMessage(message);
-      setStatus({ status: true, message: "Text sent to all clients successfully!" });
-    },
-    [socket]
-  );
 
   return (
     <div className="flex h-svh items-center justify-center p-8">
@@ -102,17 +110,7 @@ export default function Homepage() {
           >
             Publish New Text
           </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex-1"
-            onClick={() => {
-              if (latestMessage) {
-                navigator.clipboard.writeText(latestMessage);
-                setStatus({ status: true, message: "Text copied successfully!" });
-              }
-            }}
-          >
+          <Button variant="outline" size="lg" className="flex-1" onClick={copyToClipboard}>
             Copy Current Text
           </Button>
         </CardFooter>
