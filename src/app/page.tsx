@@ -20,13 +20,18 @@ export default function Homepage() {
   const socket = ref.current;
 
   const clearStatus = () => setStatus({ status: null, message: null });
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(latestMessage);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const copyToClipboard = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    const success = document.execCommand("copy");
+    if (success) {
       setStatus({ status: true, message: "Text copied successfully!" });
-    } catch (err) {
+    } else {
       setStatus({ status: false, message: "Failed to copy text into clipboard!" });
-      console.error(err);
     }
   };
 
@@ -85,6 +90,7 @@ export default function Homepage() {
           <div className="flex flex-col gap-2">
             <InputGroup>
               <InputGroupTextarea
+                ref={textareaRef}
                 placeholder="..."
                 className="min-h-[220px] resize"
                 value={latestMessage}
